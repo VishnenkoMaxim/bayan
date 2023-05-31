@@ -82,41 +82,26 @@ uint32_t ReadBlockCRC(std::ifstream &_stream, char *tmp_buffer, uint32_t block_l
     return HashFunc(tmp_buffer, block_len);
 }
 
-vector<FileData> FindDuplicates(const vector<FileData> &src){
+vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src){
     vector<FileData> duplicates;
 
-    uint32_t cur_hash = src[0].hash_block;
-    uint16_t count = 0;
-    bool put_new_line = false;
-    for(uint32_t i=1; i<src.size(); i++){
-        if (src[i].hash_block == cur_hash){
-            count++;
-            if (count == 1){
-                if(src[i].processed_bytes == fs::file_size(src[i].path) && src[i-1].processed_bytes == fs::file_size(src[i-1].path)){
-                    cout << src[i-1].path.string() << endl;
-                    cout << src[i].path.string() << endl;
-                    put_new_line = true;
-                } else {
-                    duplicates.push_back(src[i - 1]);
-                    duplicates.push_back(src[i]);
-                }
-            }
-            if (count >= 2) {
-                if(src[i].processed_bytes == fs::file_size(src[i].path)){
-                    cout << src[i].path.string() << endl;
-                    put_new_line = true;
-                } else duplicates.push_back(src[i]);
-            }
-        } else {
-            if (put_new_line) {
-                put_new_line = false;
+    for (auto it=src.begin(); it != src.end(); it++){
+        int cur_count = src.count(it->first);
+        if (cur_count > 1){
+            auto range = src.equal_range(it->first);
+            vector<string> dupl;
+            for_each(range.first, range.second, [&duplicates, &dupl](const auto &x){
+                if (x.second.processed_bytes != fs::file_size(x.second.path)) duplicates.push_back(x.second);
+                else dupl.push_back(x.second.path.string());
+            });
+            if (dupl.size() > 1) {
+                for(const auto & d_it : dupl) cout << d_it << endl;
                 cout << endl;
             }
-            count = 0;
+            std::advance(it, cur_count-1);
         }
-        cur_hash = src[i].hash_block;
     }
-    if (put_new_line) cout << endl;
+
     return duplicates;
 }
 
