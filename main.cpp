@@ -51,17 +51,19 @@ int main(int argc, char **argv) {
     std::ifstream file;
 
     cout << "Comparing file data..." << endl << endl;
+    unordered_multimap<uint32_t, FileData> data;
     while(!all_files.empty()){
+        data.clear();
         for(auto &it : all_files){
             file.open(it.path, std::ifstream::binary);
             if (file.good()){
                 file.seekg(it.processed_bytes);
                 it.hash_block = ReadBlockCRC(file, buf, settings.block_size, it.processed_bytes, HashFunc);
                 file.close();
+                data.insert(make_pair(it.hash_block, it));
             } else cout << "open error: " <<  it.path.string() << endl;
         }
-        std::sort(all_files.begin(), all_files.end(), [](FileData &f1, FileData &f2){return f1.hash_block < f2.hash_block;});
-        all_files = FindDuplicates(all_files);
+        all_files = FindDuplicates(data);
     }
 
     delete[] buf;

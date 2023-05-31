@@ -45,7 +45,7 @@ vector<FileData> Traverse(fs::path& dir, const vector<string> &_mask_vector, con
 uint32_t CRC32(const char* data, uint32_t data_len);
 uint32_t MD5(const char* data, uint32_t data_len);
 uint32_t ReadBlockCRC(std::ifstream &_stream, char *tmp_buffer, uint32_t block_len, uint32_t &offset, uint32_t (*HashFunc)(const char*, const uint32_t));
-vector<FileData> FindDuplicates(const vector<FileData> &src);
+vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src);
 void PrintSettings(const Settings &settings);
 
 #endif //BAYAN_H
