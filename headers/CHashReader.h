@@ -19,7 +19,7 @@ struct ReadTaskData {
 
 class CHashReader {
     public:
-    CHashReader(const uint32_t block_size, uint32_t (*hash_func)(const char*, const uint32_t), const uint8_t threads_num = 4)
+    CHashReader(const uint32_t block_size, uint32_t (*hash_func)(const char*, uint32_t), const uint8_t threads_num = 4)
         : mBlockSize(block_size), mHashFunc(hash_func), mThreadsNum(threads_num) {}
 
     void addTask(const ReadTaskData& task);

@@ -1,5 +1,7 @@
 #include "bayan.h"
 
+extern uint64_t duplicated_memory;
+
 bool CheckFilters(const fs::path &path, const vector<string> &_mask_vector){
     if (!_mask_vector.empty()){
         boost::smatch match_res;
@@ -70,18 +72,6 @@ uint32_t MD5(const char* data, const uint32_t data_len){
     return res_hash;
 }
 
-uint32_t ReadBlockCRC(std::ifstream &_stream, char *tmp_buffer, uint32_t block_len, uint32_t &offset, uint32_t (*HashFunc)(const char*, const uint32_t)){
-    _stream.read(tmp_buffer, block_len);
-
-    if (_stream) {
-        offset += block_len;
-        return HashFunc(tmp_buffer, block_len);
-    }
-    memset(tmp_buffer + _stream.gcount(), 0, block_len - _stream.gcount());
-    offset += _stream.gcount();
-    return HashFunc(tmp_buffer, block_len);
-}
-
 vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src){
     vector<FileData> duplicates;
 
@@ -97,6 +87,8 @@ vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &sr
             if (dupl.size() > 1) {
                 for(const auto & d_it : dupl) cout << d_it << endl;
                 cout << endl;
+
+                duplicated_memory += (dupl.size()-1) * it->second.processed_bytes / _1MB;
             }
             std::advance(it, cur_count-1);
         }

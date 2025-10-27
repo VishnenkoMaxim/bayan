@@ -24,6 +24,8 @@ private:
     chrono::system_clock::time_point stop_time;
 };
 
+uint64_t duplicated_memory = 0;
+
 int main(int argc, char **argv) {
     Settings settings;
 
@@ -64,7 +66,7 @@ int main(int argc, char **argv) {
     uint32_t (*HashFunc)(const char*, const uint32_t);
     if (settings.hash_alg == "md5" || settings.hash_alg == "MD5") HashFunc = MD5;
     else HashFunc = CRC32;
-
+    
     cout << "Traversing... " << endl;
     vector<FileData> all_files;
     for(const auto &it : vm["scan-dirs"].as<vector<string>>()){
@@ -96,5 +98,15 @@ int main(int argc, char **argv) {
         all_files = FindDuplicates(data);
     }
     m.stop();
+    if (duplicated_memory < 1024)
+    {
+        cout << "Duplicated memory size: " << duplicated_memory << "." << duplicated_memory % 1024 << " MB" << endl;
+    }
+    else
+    {
+        cout << "Duplicated memory size: " << duplicated_memory / 1024 << "." << duplicated_memory % 1024 << " GB" << endl;
+    }
+    
+    
     return 0;
 }

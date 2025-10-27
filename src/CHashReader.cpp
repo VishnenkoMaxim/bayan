@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <boost/filesystem/exception.hpp>
 
 void CHashReader::addTask(const ReadTaskData& task) {
     //std::unique_lock<std::mutex> lock(mMutex);
@@ -54,15 +55,28 @@ void CHashReader::reader() {
         mQueue.pop();
         lock.unlock();
 
-        std::ifstream file;
-        file.open(task.path, std::ifstream::binary);
-        if (file.good()){
-            file.seekg(task.offset);
-            task.hash = calcBlockHash(file, task.offset);
-            file.close();
-            task.err = false;
-        } else {
-            std::cout << "open error: " <<  task.path.string() << std::endl;
+        try
+        {
+            std::ifstream file;
+            file.open(task.path, std::ifstream::binary);
+            if (file.good()){
+                file.seekg(task.offset);
+                task.hash = calcBlockHash(file, task.offset);
+                file.close();
+                task.err = false;
+            } else {
+                std::cout << "open error: " <<  task.path.string() << std::endl;
+                task.err = true;
+            }
+        }
+        catch (const boost::filesystem::filesystem_error& e)
+        {
+            std::cout << e.what() << std::endl;
+            task.err = true;
+        }
+        catch (std::exception& e)
+        {
+            std::cout << e.what() << std::endl;
             task.err = true;
         }
     }
