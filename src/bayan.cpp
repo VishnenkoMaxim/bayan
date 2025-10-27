@@ -85,8 +85,8 @@ uint32_t ReadBlockCRC(std::ifstream &_stream, char *tmp_buffer, uint32_t block_l
 vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src){
     vector<FileData> duplicates;
 
-    for (auto it=src.begin(); it != src.end(); it++){
-        int cur_count = src.count(it->first);
+    for (auto it=src.begin(); it != src.end(); ++it){
+        const auto cur_count = src.count(it->first);
         if (cur_count > 1){
             auto range = src.equal_range(it->first);
             vector<string> dupl;

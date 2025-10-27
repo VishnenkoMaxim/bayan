@@ -19,6 +19,8 @@
 #include <boost/uuid/detail/md5.hpp>
 #include <fstream>
 
+#include "CHashReader.h"
+
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 namespace md5_hash = boost::uuids::detail;
@@ -34,10 +36,9 @@ struct Settings{
 
 struct FileData{
     fs::path path;
-    uint32_t hash_block;
-    uint32_t processed_bytes;
-
-    FileData() : hash_block(0), processed_bytes(0){};
+    uint32_t hash_block = 0;
+    uint32_t processed_bytes = 0;
+    bool err = false;
 };
 
 bool CheckFilters(const fs::path &path, const vector<string> &_mask_vector);

@@ -1,5 +1,29 @@
 #include "bayan.h"
 
+#include <chrono>
+class CTimeMeasurer {
+public:
+    CTimeMeasurer() {
+        start_time = chrono::system_clock::now();
+    }
+
+    void start() {
+        start_time = chrono::system_clock::now();
+    }
+
+    void stop() {
+        stop_time = chrono::system_clock::now();
+
+        auto seconds = std::chrono::duration_cast<std::chrono::seconds>(stop_time-start_time).count();
+        auto m_sec = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time-start_time).count() - seconds*100;
+        cout << "Total elapsed time: " << seconds << "." << m_sec << " sec" << endl;
+    }
+
+private:
+    chrono::system_clock::time_point start_time;
+    chrono::system_clock::time_point stop_time;
+};
+
 int main(int argc, char **argv) {
     Settings settings;
 
@@ -17,7 +41,9 @@ int main(int argc, char **argv) {
     po::store(parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
 
-    if (vm.count("help")) cout << desc << endl;
+    if (vm.count("help")) {
+        cout << desc << endl;
+    }
 
     if (vm.count("scan-dirs") <= 0){
         cout << "There are no dirs to look into. Terminate" << endl;
@@ -47,25 +73,28 @@ int main(int argc, char **argv) {
         all_files.insert(all_files.end(), paths.begin(), paths.end());
     }
     cout << "files amount to compare: " << all_files.size() << endl;
-    char *buf = new char[settings.block_size];
-    std::ifstream file;
 
     cout << "Comparing file data..." << endl << endl;
     unordered_multimap<uint32_t, FileData> data;
+    CTimeMeasurer m;
+
     while(!all_files.empty()){
         data.clear();
-        for(auto &it : all_files){
-            file.open(it.path, std::ifstream::binary);
-            if (file.good()){
-                file.seekg(it.processed_bytes);
-                it.hash_block = ReadBlockCRC(file, buf, settings.block_size, it.processed_bytes, HashFunc);
-                file.close();
-                data.insert(make_pair(it.hash_block, it));
-            } else cout << "open error: " <<  it.path.string() << endl;
+
+        CHashReader hash_reader(settings.block_size, HashFunc);
+        for(auto &it : all_files) {
+            hash_reader.addTask({it.path, it.processed_bytes, it.hash_block, it.err});
         }
+        hash_reader.wait();
+
+        for (auto& it : all_files) {
+            if (!it.err) {
+                data.insert(make_pair(it.hash_block, it));
+            }
+        }
+
         all_files = FindDuplicates(data);
     }
-
-    delete[] buf;
+    m.stop();
     return 0;
 }
