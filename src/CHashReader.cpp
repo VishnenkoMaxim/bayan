@@ -8,6 +8,12 @@
 #include <iostream>
 #include <boost/filesystem/exception.hpp>
 
+void CHashReader::init()
+{
+    std::unique_lock<std::mutex> lock(mMutex);
+    while (!mQueue.empty()) mQueue.pop();
+}
+
 void CHashReader::addTask(const ReadTaskData& task) {
     //std::unique_lock<std::mutex> lock(mMutex);
     mQueue.push(task);
@@ -21,6 +27,7 @@ void CHashReader::wait() {
     for (auto& thread : mThreads) {
         thread.join();
     }
+    mThreads.clear();
 }
 
 void CHashReader::start() {

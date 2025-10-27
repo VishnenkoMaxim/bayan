@@ -32,12 +32,13 @@ int main(int argc, char **argv) {
     po::options_description desc("options");
     desc.add_options()  ("help,h", "Help info")
                         ("min-size,s", po::value<uint32_t>(&settings.min_file_size)->default_value(1), "Min file size, bytes")
-                        ("block-size,b", po::value<uint32_t>(&settings.block_size)->default_value(256), "Reading block size")
+                        ("block-size,b", po::value<uint32_t>(&settings.block_size)->default_value(16384), "Reading block size")
                         ("scan-dirs,d", po::value<vector<string>>()->multitoken(), "Directories to scan")
                         ("exclude-dirs,e", po::value<vector<string>>()->multitoken(), "Excluded directories")
                         ("recursive,r", po::value<bool>(&settings.recursive)->default_value(false)->zero_tokens(), "Make it recursively")
                         ("hash-alg,a", po::value<string>(&settings.hash_alg)->default_value("crc32"), "Hash algorithm")
                         ("mask,m", po::value<vector<string>>()->multitoken(), "Regular expression mask");
+                
 
     po::variables_map vm;
     po::store(parse_command_line(argc, argv, desc), vm);
@@ -78,12 +79,13 @@ int main(int argc, char **argv) {
 
     cout << "Comparing file data..." << endl << endl;
     unordered_multimap<uint32_t, FileData> data;
+    
     CTimeMeasurer m;
-
+    CHashReader hash_reader(settings.block_size, HashFunc);
     while(!all_files.empty()){
         data.clear();
-
-        CHashReader hash_reader(settings.block_size, HashFunc);
+        hash_reader.init();
+        
         for(auto &it : all_files) {
             hash_reader.addTask({it.path, it.processed_bytes, it.hash_block, it.err});
         }
