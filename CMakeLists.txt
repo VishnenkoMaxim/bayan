@@ -29,10 +29,9 @@ set_property(TARGET system PROPERTY IMPORTED_LOCATION           /usr/local/lib/l
 set_property(TARGET filesystem PROPERTY IMPORTED_LOCATION       /usr/local/lib/libboost_filesystem.a)
 set_property(TARGET regex PROPERTY IMPORTED_LOCATION            /usr/local/lib/libboost_regex.a)
 
-add_library(functions src/bayan.cpp src/CHashReader.cpp src/CDuplicatedFile.cpp)
+add_library(functions src/bayan.cpp src/CHashReader.cpp src/CDuplicatedFile.cpp src/CSearcher.cpp)
 add_executable(bayan main.cpp)
 
-#target_link_libraries(bayan PRIVATE stdc++ m functions ${Boost_LIBRARIES})
 target_link_libraries(bayan PRIVATE stdc++ m functions program_options system filesystem regex)
 
 set_target_properties(bayan functions PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)

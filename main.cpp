@@ -1,34 +1,8 @@
 #include "bayan.h"
+#include "CSearcher.h"
+#include "CTimeMeasurer.h"
 
-#include <chrono>
-
-class CTimeMeasurer {
-public:
-    CTimeMeasurer() {
-        start_time = chrono::system_clock::now();
-    }
-
-    void start() {
-        start_time = chrono::system_clock::now();
-    }
-
-    void stop() {
-        stop_time = chrono::system_clock::now();
-    }
-
-    void print()
-    {
-        auto seconds = std::chrono::duration_cast<std::chrono::seconds>(stop_time-start_time).count();
-        auto m_sec = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time-start_time).count() - seconds*100;
-        cout << "Total elapsed time: " << seconds << "." << m_sec << " sec" << endl;
-    }
-
-private:
-    chrono::system_clock::time_point start_time;
-    chrono::system_clock::time_point stop_time;
-};
-
-std::list<CDuplicatedFile> duplicated_files;
+using namespace std;
 
 int main(int argc, char **argv) {
     Settings settings;
@@ -47,9 +21,10 @@ int main(int argc, char **argv) {
     po::variables_map vm;
     po::store(parse_command_line(argc, argv, desc), vm);
     po::notify(vm);
-
+    
     if (vm.count("help")) {
         cout << desc << endl;
+        return 0;
     }
 
     if (vm.count("scan-dirs") <= 0){
@@ -57,77 +32,29 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    vector<string> excluded_folders;
+    CSearcherBuilder searcher_builder;
+    
     if (vm.count("exclude-dirs") > 0) {
-        excluded_folders = vm["exclude-dirs"].as<vector<string>>();
+        searcher_builder.withExcludedFolders(vm["exclude-dirs"].as<vector<string>>());
     }
-
-    vector<string> filters;
+    
     if (vm.count("mask") > 0){
-        filters = vm["mask"].as<vector<string>>();
+        searcher_builder.withFilters(vm["mask"].as<vector<string>>());
     }
-    PrintSettings(settings);
-
-    uint32_t (*HashFunc)(const char*, const uint32_t);
-    if (settings.hash_alg == "md5" || settings.hash_alg == "MD5") HashFunc = MD5;
-    else HashFunc = CRC32;
+    searcher_builder.withBlockSize(settings.block_size);
+    searcher_builder.withMinFileSize(settings.min_file_size);
+    searcher_builder.withRecursive(settings.recursive);
+    searcher_builder.withHashAlg(settings.hash_alg);
+    searcher_builder.withFoldersToScan(vm["scan-dirs"].as<vector<string>>());
+    auto searcher = searcher_builder.build();
     
-    cout << "Traversing... " << endl;
-    vector<FileData> all_files;
-    for(const auto &it : vm["scan-dirs"].as<vector<string>>()){
-        fs::path p(it);
-        auto paths = Traverse(p, filters, excluded_folders, settings);
-        all_files.insert(all_files.end(), paths.begin(), paths.end());
-    }
-    cout << "files amount to compare: " << all_files.size() << endl;
+    searcher.printSettings();
 
-    cout << "Comparing file data..." << endl << endl;
-    unordered_multimap<uint32_t, FileData> data;
-    
-    CTimeMeasurer m;
-    CHashReader hash_reader(settings.block_size, HashFunc);
-    while(!all_files.empty()){
-        data.clear();
-        hash_reader.init();
-        
-        for(auto &it : all_files) {
-            hash_reader.addTask({it.path, it.processed_bytes, it.hash_block, it.err});
-        }
-        hash_reader.wait();
+    // Обходим каталоги
+    searcher.traverse();
 
-        for (auto& it : all_files) {
-            if (!it.err) {
-                data.insert(make_pair(it.hash_block, it));
-            }
-        }
-
-        all_files = FindDuplicates(data, duplicated_files);
-    }
-    m.stop();
-    
-    if (!duplicated_files.empty())
-    {
-        uint64_t duplicated_memory = 0;
-        for (auto &dup_file : duplicated_files)
-        {
-            dup_file.print();
-            duplicated_memory += dup_file.getPotentialFreeSize();
-        }
-        m.print();
-        cout << "Duplicated files count: " << duplicated_files.size() << endl;
-        
-        if (duplicated_memory < _1GB)
-        {
-            cout << "Duplicated memory size: " << duplicated_memory / _1MB << "." << duplicated_memory % _1MB << " MB" << endl;
-        }
-        else
-        {
-            cout << "Duplicated memory size: " << duplicated_memory / _1GB << "." << duplicated_memory % _1GB << " GB" << endl;
-        }
-        return 0;
-    }
-    m.print();
-    cout << "There is no duplicated files in source dirs" << endl;
+    // Ищем дубликаты
+    searcher.search();
     
     return 0;
 }
