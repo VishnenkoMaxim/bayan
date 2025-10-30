@@ -1,6 +1,7 @@
 #include "bayan.h"
 
 #include <chrono>
+
 class CTimeMeasurer {
 public:
     CTimeMeasurer() {
@@ -13,7 +14,10 @@ public:
 
     void stop() {
         stop_time = chrono::system_clock::now();
+    }
 
+    void print()
+    {
         auto seconds = std::chrono::duration_cast<std::chrono::seconds>(stop_time-start_time).count();
         auto m_sec = std::chrono::duration_cast<std::chrono::milliseconds>(stop_time-start_time).count() - seconds*100;
         cout << "Total elapsed time: " << seconds << "." << m_sec << " sec" << endl;
@@ -24,7 +28,7 @@ private:
     chrono::system_clock::time_point stop_time;
 };
 
-uint64_t duplicated_memory = 0;
+std::list<CDuplicatedFile> duplicated_files;
 
 int main(int argc, char **argv) {
     Settings settings;
@@ -97,18 +101,33 @@ int main(int argc, char **argv) {
             }
         }
 
-        all_files = FindDuplicates(data);
+        all_files = FindDuplicates(data, duplicated_files);
     }
     m.stop();
-    if (duplicated_memory < 1024)
-    {
-        cout << "Duplicated memory size: " << duplicated_memory << "." << duplicated_memory % 1024 << " MB" << endl;
-    }
-    else
-    {
-        cout << "Duplicated memory size: " << duplicated_memory / 1024 << "." << duplicated_memory % 1024 << " GB" << endl;
-    }
     
+    if (!duplicated_files.empty())
+    {
+        uint64_t duplicated_memory = 0;
+        for (auto &dup_file : duplicated_files)
+        {
+            dup_file.print();
+            duplicated_memory += dup_file.getPotentialFreeSize();
+        }
+        m.print();
+        cout << "Duplicated files count: " << duplicated_files.size() << endl;
+        
+        if (duplicated_memory < _1GB)
+        {
+            cout << "Duplicated memory size: " << duplicated_memory / _1MB << "." << duplicated_memory % _1MB << " MB" << endl;
+        }
+        else
+        {
+            cout << "Duplicated memory size: " << duplicated_memory / _1GB << "." << duplicated_memory % _1GB << " GB" << endl;
+        }
+        return 0;
+    }
+    m.print();
+    cout << "There is no duplicated files in source dirs" << endl;
     
     return 0;
 }

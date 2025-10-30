@@ -1,7 +1,5 @@
 #include "bayan.h"
 
-extern uint64_t duplicated_memory;
-
 bool CheckFilters(const fs::path &path, const vector<string> &_mask_vector){
     if (!_mask_vector.empty()){
         boost::smatch match_res;
@@ -72,23 +70,32 @@ uint32_t MD5(const char* data, const uint32_t data_len){
     return res_hash;
 }
 
-vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src){
+vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src, std::list<CDuplicatedFile>& duplicated_files){
     vector<FileData> duplicates;
 
     for (auto it=src.begin(); it != src.end(); ++it){
         const auto cur_count = src.count(it->first);
         if (cur_count > 1){
             auto range = src.equal_range(it->first);
-            vector<string> dupl;
+            vector<std::pair<boost::filesystem::path, size_t>> dupl;
             for_each(range.first, range.second, [&duplicates, &dupl](const auto &x){
-                if (x.second.processed_bytes != fs::file_size(x.second.path)) duplicates.push_back(x.second);
-                else dupl.push_back(x.second.path.string());
+                if (x.second.processed_bytes != fs::file_size(x.second.path))
+                {
+                    duplicates.emplace_back(x.second);
+                }
+                else
+                {
+                    dupl.emplace_back(make_pair(x.second.path.string(), x.second.processed_bytes));
+                }
             });
             if (dupl.size() > 1) {
-                for(const auto & d_it : dupl) cout << d_it << endl;
-                cout << endl;
-
-                duplicated_memory += (dupl.size()-1) * it->second.processed_bytes / _1MB;
+                CDuplicatedFile duplicated_file(dupl[0].second, dupl[0].first.filename().string());
+                
+                for(const auto& dup_file : dupl)
+                {
+                    duplicated_file.addPath(dup_file.first);
+                }
+                duplicated_files.emplace_back(std::move(duplicated_file));
             }
             std::advance(it, cur_count-1);
         }

@@ -20,6 +20,7 @@
 #include <fstream>
 
 #include "CHashReader.h"
+#include "CDuplicatedFile.h"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -28,6 +29,7 @@ namespace md5_hash = boost::uuids::detail;
 using namespace std;
 
 #define _1MB (1024*1024)
+#define _1GB (1024*1024*1024)
 
 struct Settings{
     uint32_t min_file_size;
@@ -47,7 +49,7 @@ bool CheckFilters(const fs::path &path, const vector<string> &_mask_vector);
 vector<FileData> Traverse(fs::path& dir, const vector<string> &_mask_vector, const vector<string> &_excluded_folders, const Settings &_settings);
 uint32_t CRC32(const char* data, uint32_t data_len);
 uint32_t MD5(const char* data, uint32_t data_len);
-vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src);
+vector<FileData> FindDuplicates(const unordered_multimap<uint32_t, FileData> &src, std::list<CDuplicatedFile>& duplicated_files);
 void PrintSettings(const Settings &settings);
 
 #endif //BAYAN_H
