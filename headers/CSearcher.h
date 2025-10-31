@@ -12,6 +12,13 @@ class CSearcher
     public:
         friend class CSearcherBuilder;
 
+        CSearcher()
+        {
+            mAllFiles.reserve(1024);
+            mScanFolders.reserve(1024);
+            mDuplicatedFiles.reserve(1024);
+        }
+    
         void traverse();
 
         void search();
@@ -22,7 +29,7 @@ class CSearcher
 
         std::vector<FileData> traverseDir(const fs::path& dir) const;
         static bool checkFilters(const fs::path &path, const std::vector<std::string> &_mask_vector);
-        std::vector<FileData> FindDuplicates(const std::unordered_multimap<uint32_t, FileData> &src, std::list<CDuplicatedFile>& duplicated_files) const;
+        std::vector<FileData> FindDuplicates(const std::unordered_multimap<uint32_t, FileData> &src, std::vector<CDuplicatedFile>& duplicated_files) const;
     
         std::vector<std::string> mExcludedFolders;
         std::vector<std::string> mFilters;
@@ -34,7 +41,7 @@ class CSearcher
         bool isRecursive = true;
         std::string mHashAlg;
     
-        std::list<CDuplicatedFile> mDuplicatedFiles;
+        std::vector<CDuplicatedFile> mDuplicatedFiles;
         std::unordered_multimap<uint32_t, FileData> data;
         CTimeMeasurer mTimeMeasurer;
 };

@@ -125,7 +125,7 @@ std::vector<FileData> CSearcher::traverseDir(const fs::path& dir) const
     return result;
 }
 
-std::vector<FileData> CSearcher::FindDuplicates(const std::unordered_multimap<uint32_t, FileData> &src, std::list<CDuplicatedFile>& duplicated_files) const
+std::vector<FileData> CSearcher::FindDuplicates(const std::unordered_multimap<uint32_t, FileData> &src, std::vector<CDuplicatedFile>& duplicated_files) const
 {
     vector<FileData> duplicates;
 
