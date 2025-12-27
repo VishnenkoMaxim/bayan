@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
     po::options_description desc("options");
     desc.add_options()  ("help,h", "Help info")
-                        ("min-size,s", po::value<uint32_t>(&settings.min_file_size)->default_value(1), "Min file size, bytes")
+                        ("min-size,s", po::value<uint32_t>(&settings.min_file_size)->default_value(1), "Min file size, Mb")
                         ("block-size,b", po::value<uint32_t>(&settings.block_size)->default_value(16384), "Reading block size")
                         ("scan-dirs,d", po::value<vector<string>>()->multitoken(), "Directories to scan")
                         ("exclude-dirs,e", po::value<vector<string>>()->multitoken(), "Excluded directories")
@@ -41,6 +41,12 @@ int main(int argc, char **argv) {
     if (vm.count("mask") > 0){
         searcher_builder.withFilters(vm["mask"].as<vector<string>>());
     }
+
+    if (vm.count("min-size") > 0)
+    {
+        settings.min_file_size = settings.min_file_size * _1MB;
+    }
+    
     searcher_builder.withBlockSize(settings.block_size);
     searcher_builder.withMinFileSize(settings.min_file_size);
     searcher_builder.withRecursive(settings.recursive);
@@ -55,6 +61,10 @@ int main(int argc, char **argv) {
 
     // Ищем дубликаты
     searcher.search();
+
+    // todo send results
+    const auto& results = searcher.getDuplicatedFiles();
+    
     
     return 0;
 }

@@ -29,6 +29,8 @@ namespace md5_hash = boost::uuids::detail;
 #define _1MB (1024*1024)
 #define _1GB (1024*1024*1024)
 
+#define GUI_PORT 7698
+
 struct Settings{
     uint32_t min_file_size;
     uint32_t block_size;

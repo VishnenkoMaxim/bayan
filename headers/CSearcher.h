@@ -4,15 +4,18 @@
 
 #pragma once
 
+#include "boost/asio/ip/tcp.hpp"
+
 #include "bayan.h"
 #include "CTimeMeasurer.h"
+#include "CGUIInterface.h"
 
 class CSearcher
 {
     public:
         friend class CSearcherBuilder;
 
-        CSearcher()
+        explicit CSearcher()
         {
             mAllFiles.reserve(1024);
             mScanFolders.reserve(1024);
@@ -24,6 +27,8 @@ class CSearcher
         void search();
     
         void printSettings() const;
+
+        std::vector<CDuplicatedFile>& getDuplicatedFiles();
     
     private:
 

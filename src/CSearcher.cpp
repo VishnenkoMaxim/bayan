@@ -228,5 +228,9 @@ void CSearcher::search()
         return;
     }
     cout << "There is no duplicated files in source dirs" << endl;
-    
+}
+
+std::vector<CDuplicatedFile>& CSearcher::getDuplicatedFiles()
+{
+    return mDuplicatedFiles;
 }
