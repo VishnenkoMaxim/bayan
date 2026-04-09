@@ -59,5 +59,5 @@ private:
 
     void reader();
 
-    uint32_t calcBlockHash(std::ifstream &_stream, uint32_t& offset);
+    uint32_t calcBlockHash(std::ifstream &_stream, uint32_t& offset, const std::unique_ptr<char[]>& pBuf);
 };

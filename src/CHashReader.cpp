@@ -36,20 +36,21 @@ void CHashReader::start() {
     }
 }
 
-uint32_t CHashReader::calcBlockHash(std::ifstream &_stream, uint32_t& offset) {
-    const auto buf = std::make_unique<char[]>(mBlockSize);
-    _stream.read(buf.get(), mBlockSize);
+uint32_t CHashReader::calcBlockHash(std::ifstream &_stream, uint32_t& offset, const std::unique_ptr<char[]>& pBuf) {
+    _stream.read(pBuf.get(), mBlockSize);
 
     if (_stream) {
         offset += mBlockSize;
-        return mHashFunc(buf.get(), mBlockSize);
+        return mHashFunc(pBuf.get(), mBlockSize);
     }
 
     offset += _stream.gcount();
-    return mHashFunc(buf.get(), mBlockSize);
+    return mHashFunc(pBuf.get(), mBlockSize);
 }
 
 void CHashReader::reader() {
+    auto buf = std::make_unique<char[]>(mBlockSize);
+
     while (!mQueue.empty()) {
         std::unique_lock<std::mutex> lock(mMutex);
         if (mQueue.empty()) {
@@ -66,7 +67,7 @@ void CHashReader::reader() {
             file.open(task.path, std::ifstream::binary);
             if (file.good()){
                 file.seekg(task.offset);
-                task.hash = calcBlockHash(file, task.offset);
+                task.hash = calcBlockHash(file, task.offset, buf);
                 file.close();
                 task.err = false;
             } else {
