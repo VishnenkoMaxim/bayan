@@ -38,15 +38,13 @@ void CHashReader::start() {
 
 uint32_t CHashReader::calcBlockHash(std::ifstream &_stream, uint32_t& offset) {
     const auto buf = std::make_unique<char[]>(mBlockSize);
-    memset(buf.get(), 0, mBlockSize);
-
     _stream.read(buf.get(), mBlockSize);
 
     if (_stream) {
         offset += mBlockSize;
         return mHashFunc(buf.get(), mBlockSize);
     }
-    memset(buf.get() + _stream.gcount(), 0, mBlockSize - _stream.gcount());
+
     offset += _stream.gcount();
     return mHashFunc(buf.get(), mBlockSize);
 }
