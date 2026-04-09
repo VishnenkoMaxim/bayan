@@ -37,6 +37,8 @@ void CHashReader::start() {
 }
 
 uint32_t CHashReader::calcBlockHash(std::ifstream &_stream, uint32_t& offset, const std::unique_ptr<char[]>& pBuf) {
+    memset(pBuf.get(), 0, mBlockSize);
+
     _stream.read(pBuf.get(), mBlockSize);
 
     if (_stream) {

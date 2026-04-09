@@ -32,7 +32,7 @@ set_property(TARGET regex PROPERTY IMPORTED_LOCATION            /usr/local/lib/l
 add_library(functions src/bayan.cpp src/CHashReader.cpp src/CDuplicatedFile.cpp src/CSearcher.cpp src/CBoostSocketGUI.cpp)
 add_executable(bayan main.cpp)
 
-target_link_libraries(bayan PRIVATE stdc++ m functions program_options system filesystem regex)
+target_link_libraries(bayan PRIVATE functions program_options system filesystem regex)
 
 set_target_properties(bayan functions PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 target_compile_options(bayan PRIVATE -Wall -Wextra -pedantic)

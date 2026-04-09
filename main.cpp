@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
     po::options_description desc("options");
     desc.add_options()  ("help,h", "Help info")
-                        ("min-size,s", po::value<uint32_t>(&settings.min_file_size)->default_value(1), "Min file size, Mb")
+                        ("min-size,s", po::value<uint32_t>(&settings.min_file_size)->default_value(0), "Min file size, Mb")
                         ("block-size,b", po::value<uint32_t>(&settings.block_size)->default_value(16384), "Reading block size")
                         ("scan-dirs,d", po::value<vector<string>>()->multitoken(), "Directories to scan")
                         ("exclude-dirs,e", po::value<vector<string>>()->multitoken(), "Excluded directories")
