@@ -1,5 +1,6 @@
 #include "bayan.h"
 #include "CSearcher.h"
+#include "gui_interface/CGUIInterface.h"
 
 using namespace std;
 
@@ -63,7 +64,6 @@ int main(int argc, char **argv) {
 
     // todo send results
     const auto& results = searcher.getDuplicatedFiles();
-    
-    
+
     return 0;
 }

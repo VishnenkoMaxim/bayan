@@ -17,7 +17,7 @@ public:
 class CBoostSocketGUI : public IGUIInterface
 {
 public:
-    explicit CBoostSocketGUI(boost::asio::io_context& context) : mIOContext(context), mSocket(mIOContext) {}
+    explicit CBoostSocketGUI() : mSocket(mIOContext) {}
 
     bool sendData(const char* data, std::size_t buf_size) override;
 
@@ -26,12 +26,8 @@ public:
     ~CBoostSocketGUI() override;
 
 private:
-    boost::asio::io_context& mIOContext;
+    boost::asio::io_context mIOContext;
     boost::asio::ip::tcp::socket mSocket;
 
-    void handleWriteConnect(const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint,
-                        const char* data, std::size_t buf_size);
-
-    void handleReadConnect(const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint,
-                        char* data, std::size_t buf_size);
+    bool connect();
 };

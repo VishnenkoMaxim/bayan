@@ -11,23 +11,22 @@
 
 using namespace boost::asio::ip;
 
-void CBoostSocketGUI::handleWriteConnect(const boost::system::error_code& error, const tcp::endpoint& endpoint,
-                                    const char* data, std::size_t buf_size)
+bool CBoostSocketGUI::connect()
 {
-    if (!error) {
-        std::cout << "Successfully connected to " << endpoint << std::endl;
+    try
+    {
+        tcp::resolver resolver(mIOContext);
+        const tcp::resolver::results_type endpoints = resolver.resolve("localhost", std::to_string(GUI_PORT));
 
-        boost::asio::async_write(mSocket, boost::asio::buffer(data, buf_size), [endpoint](const boost::system::error_code &ec, const std::size_t bytes)
-        {
-            if (ec)
-            {
-                std::cout << "Error writing to socket: " << ec.message() << std::endl;
-                return;
-            }
-            std::cout << "Sent " << bytes << " to client " << endpoint << std::endl;
-        });
-    } else {
-        std::cerr << "Connection error: " << error.message() << std::endl;
+        boost::asio::connect(mSocket, endpoints);
+
+        std::cout << "Successfully connected to " << mSocket.remote_endpoint() << std::endl;
+        return true;
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << e.what() << std::endl;
+        return false;
     }
 }
 
@@ -35,66 +34,48 @@ bool CBoostSocketGUI::sendData(const char* data, const std::size_t buf_size)
 {
     try
     {
-        tcp::resolver resolver(mIOContext);
-        const tcp::resolver::results_type endpoints = resolver.resolve("localhost", std::to_string(GUI_PORT));
-        
-        boost::asio::async_connect(mSocket, endpoints,
-           [&](const boost::system::error_code& error, const tcp::endpoint& connected_endpoint) {
-               handleWriteConnect(error, connected_endpoint, data, buf_size);
-           });
-        
-        mIOContext.run();
-        
+        if (!mSocket.is_open())
+        {
+            if (!connect())
+            {
+                return false;
+            }
+        }
+
+        boost::asio::write(mSocket, boost::asio::buffer(data, buf_size));
+
+        std::cout << "Sent " << buf_size << " to client " << std::endl;
         return true;
     }
-    catch (const std::exception& e)
+    catch (const boost::system::system_error& e)
     {
-       std::cout << "exception " << e.what() << std::endl;
-        return false;
-    }
-}
-
-void CBoostSocketGUI::handleReadConnect(const boost::system::error_code& error, const tcp::endpoint& endpoint,
-                        char* data, const std::size_t buf_size)
-{
-    if (!error) {
-        std::cout << "Successfully connected to " << endpoint << std::endl;
-
-        boost::asio::async_read(mSocket, boost::asio::buffer(data, buf_size), [endpoint](const boost::system::error_code &ec, const std::size_t bytes)
-        {
-            if (ec)
-            {
-                std::cout << "Error reading from socket: " << ec.message() << std::endl;
-                return;
-            }
-            std::cout << "Read " << bytes << " from client " << endpoint << std::endl;
-        });
-    } else {
-        std::cerr << "Connection error: " << error.message() << std::endl;
+       std::cout << "Error writing to socket: " << e.code().message() << ", (" << e.code().value() << ")" << std::endl;
+       return false;
     }
 }
 
 std::unique_ptr<char []> CBoostSocketGUI::readData(const std::size_t buf_size) {
-    std::unique_ptr<char []> data(new char[buf_size]);
-
     try
     {
-        tcp::resolver resolver(mIOContext);
-        const tcp::resolver::results_type endpoints = resolver.resolve("localhost", std::to_string(GUI_PORT));
+        if (!mSocket.is_open())
+        {
+            if (!connect())
+            {
+                return {};
+            }
+        }
+        std::unique_ptr<char []> data(new char[buf_size]);
 
-        boost::asio::async_connect(mSocket, endpoints,
-           [&](const boost::system::error_code& error, const tcp::endpoint& connected_endpoint) {
-               handleReadConnect(error, connected_endpoint, data.get(), buf_size);
-           });
+        boost::asio::read(mSocket, boost::asio::buffer(data.get(), buf_size));
+        std::cout << "Read " << buf_size << " from client " << std::endl;
 
         mIOContext.run();
-
         return data;
     }
-    catch (const std::exception& e)
+    catch (const boost::system::system_error& e)
     {
-        std::cout << "exception " << e.what() << std::endl;
-        return data;
+        std::cout << "Error reading from socket: " << e.code().message() << ", (" << e.code().value() << ")" << std::endl;
+        return {};
     }
 }
 
