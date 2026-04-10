@@ -9,6 +9,8 @@ class IGUIInterface
 public:
     virtual bool sendData(const char* data, std::size_t buf_size) = 0;
 
+    virtual std::unique_ptr<char []> readData(std::size_t buf_size) = 0;
+
     virtual ~IGUIInterface() = default;
 };
 
@@ -19,10 +21,17 @@ public:
 
     bool sendData(const char* data, std::size_t buf_size) override;
 
+    std::unique_ptr<char []> readData(std::size_t buf_size) override;
+
+    ~CBoostSocketGUI() override;
+
 private:
     boost::asio::io_context& mIOContext;
     boost::asio::ip::tcp::socket mSocket;
 
-    void handleConnect(const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint,
+    void handleWriteConnect(const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint,
                         const char* data, std::size_t buf_size);
+
+    void handleReadConnect(const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint,
+                        char* data, std::size_t buf_size);
 };
