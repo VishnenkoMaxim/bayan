@@ -1,6 +1,5 @@
 #include "bayan.h"
 #include "CSearcher.h"
-#include "CTimeMeasurer.h"
 
 using namespace std;
 

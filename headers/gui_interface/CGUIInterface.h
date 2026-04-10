@@ -7,9 +7,7 @@
 class IGUIInterface
 {
 public:
-
-    virtual bool sendResults(const std::vector<CDuplicatedFile>& results) = 0;
-    virtual bool sendProgress() = 0;
+    virtual bool sendData(const char* data, std::size_t buf_size) = 0;
 
     virtual ~IGUIInterface() = default;
 };
@@ -19,11 +17,12 @@ class CBoostSocketGUI : public IGUIInterface
 public:
     explicit CBoostSocketGUI(boost::asio::io_context& context) : mIOContext(context), mSocket(mIOContext) {}
 
-    bool sendResults(const std::vector<CDuplicatedFile>& results) override;
+    bool sendData(const char* data, std::size_t buf_size) override;
 
 private:
     boost::asio::io_context& mIOContext;
     boost::asio::ip::tcp::socket mSocket;
 
-    void handleConnect(const boost::system::error_code& error, boost::asio::ip::tcp::endpoint endpoint);
+    void handleConnect(const boost::system::error_code& error, const boost::asio::ip::tcp::endpoint& endpoint,
+                        const char* data, std::size_t buf_size);
 };

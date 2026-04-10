@@ -42,3 +42,4 @@ void CDuplicatedFile::print() const
         std::cout << std::endl;
     }
 }
+

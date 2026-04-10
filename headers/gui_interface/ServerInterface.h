@@ -9,7 +9,6 @@ namespace server_interface
 {
     enum class Function : uint8_t
     {
-        scan_directory = 1,
         get_progress,
         get_scan_result
     };

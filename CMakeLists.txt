@@ -7,12 +7,10 @@ project(bayan VERSION ${PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
 
-#find_package(Boost COMPONENTS program_options system filesystem regex REQUIRED)
 cmake_print_variables(Boost_INCLUDE_DIR)
 cmake_print_variables(Boost_LIBRARIES)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-#include_directories(${Boost_INCLUDE_DIR})
 include_directories(headers)
 include_directories(/usr/local/lib)
 
@@ -29,14 +27,17 @@ set_property(TARGET system PROPERTY IMPORTED_LOCATION           /usr/local/lib/l
 set_property(TARGET filesystem PROPERTY IMPORTED_LOCATION       /usr/local/lib/libboost_filesystem.a)
 set_property(TARGET regex PROPERTY IMPORTED_LOCATION            /usr/local/lib/libboost_regex.a)
 
-add_library(functions src/bayan.cpp src/CHashReader.cpp src/CDuplicatedFile.cpp src/CSearcher.cpp src/CBoostSocketGUI.cpp)
+add_library(search_engine src/CHashReader.cpp src/CDuplicatedFile.cpp src/CSearcher.cpp)
+add_library(gui_interface src/gui_interface/CBoostSocketGUI.cpp)
+
 add_executable(bayan main.cpp)
 
-target_link_libraries(bayan PRIVATE functions program_options system filesystem regex)
+target_link_libraries(bayan PRIVATE search_engine gui_interface program_options system filesystem regex)
 
-set_target_properties(bayan functions PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+set_target_properties(bayan search_engine gui_interface PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 target_compile_options(bayan PRIVATE -Wall -Wextra -pedantic)
-target_compile_options(functions PRIVATE -Wall -Wextra -pedantic)
+target_compile_options(search_engine PRIVATE -Wall -Wextra -pedantic)
+target_compile_options(gui_interface PRIVATE -Wall -Wextra -pedantic)
 
 install(TARGETS bayan RUNTIME DESTINATION bin)
 set(CPACK_GENERATOR DEB)

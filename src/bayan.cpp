@@ -1,1 +1,0 @@
-#include "bayan.h"

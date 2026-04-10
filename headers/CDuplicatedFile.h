@@ -25,7 +25,7 @@ class CDuplicatedFile
         uint64_t getPotentialFreeSize() const;
     
         void print() const;
-    
+
     private:
         std::list<boost::filesystem::path> mPathList;
 };

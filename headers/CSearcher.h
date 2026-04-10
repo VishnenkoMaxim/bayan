@@ -8,7 +8,6 @@
 
 #include "bayan.h"
 #include "CTimeMeasurer.h"
-#include "CGUIInterface.h"
 
 class CSearcher
 {
@@ -40,7 +39,7 @@ class CSearcher
         std::vector<std::string> mFilters;
         std::vector<std::string> mScanFolders;
         std::vector<FileData> mAllFiles;
-    
+
         uint32_t mMinFileSize = 1;
         uint32_t mBlockSize = 16384;
         bool isRecursive = true;
