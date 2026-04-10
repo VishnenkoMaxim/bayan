@@ -33,7 +33,6 @@ void CDuplicatedFile::print() const
 {
     if (!mPathList.empty())
     {
-        std::cout << "File name: " << mName << std::endl;
         std::cout << "File size: " << mSize << std::endl;
         for (const auto& path : mPathList)
         {

@@ -145,7 +145,7 @@ std::vector<FileData> CSearcher::FindDuplicates(const std::unordered_multimap<ui
                 }
             });
             if (dupl.size() > 1) {
-                CDuplicatedFile duplicated_file(dupl[0].second, dupl[0].first.filename().string());
+                CDuplicatedFile duplicated_file(dupl[0].second);
                 
                 for(const auto& dup_file : dupl)
                 {

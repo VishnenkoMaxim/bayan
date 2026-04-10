@@ -10,22 +10,19 @@
 class CDuplicatedFile
 {
     public:
-        CDuplicatedFile(const size_t size, const std::string &file_name) : mSize(size), mName(file_name){}
+        CDuplicatedFile(const size_t size) : mSize(size){}
         CDuplicatedFile() = delete;
-    
-        size_t mSize;
-        std::string mName;
 
         void addPath(const boost::filesystem::path& path);
 
-        uint64_t getCount() const;
+        [[nodiscard]] uint64_t getCount() const;
     
-        uint64_t getOccupiedSize() const;
+        [[nodiscard]] uint64_t getOccupiedSize() const;
 
-        uint64_t getPotentialFreeSize() const;
+        [[nodiscard]] uint64_t getPotentialFreeSize() const;
     
         void print() const;
 
-    private:
+        size_t mSize;
         std::list<boost::filesystem::path> mPathList;
 };

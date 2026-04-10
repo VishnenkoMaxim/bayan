@@ -1,6 +1,7 @@
 #include "bayan.h"
 #include "CSearcher.h"
 #include "gui_interface/CGUIInterface.h"
+#include "data_transformer/IDatatrnsformer.h"
 
 using namespace std;
 
@@ -62,8 +63,14 @@ int main(int argc, char **argv) {
     // Ищем дубликаты
     searcher.search();
 
-    // todo send results
+    // Преобразует данные в конкретный формат
     const auto& results = searcher.getDuplicatedFiles();
+    std::unique_ptr<IDataTransformer> data_transformer = std::make_unique<CJSONDataTransformer>();
+    const auto duplicated_files = data_transformer->transform(results);
+
+    // Отпраывляем данные в GUI
+    std::unique_ptr<IGUIInterface> gui_interface = std::make_unique<CBoostSocketGUI>();
+    gui_interface->sendData(duplicated_files.data(), duplicated_files.size());
 
     return 0;
 }
