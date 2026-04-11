@@ -3,40 +3,45 @@ include(CMakePrintHelpers)
 set(CMAKE_CXX_STANDARD 17)
 set(PATCH_VERSION "1" CACHE INTERNAL "Patch version")
 set(PROJECT_VERSION 1.0.${PATCH_VERSION})
+set(EXT_LIB_PATH /usr/local/lib/)
 project(bayan VERSION ${PROJECT_VERSION})
 
 configure_file(version.h.in version.h)
+
+find_package(Boost REQUIRED)
 
 cmake_print_variables(Boost_INCLUDE_DIR)
 cmake_print_variables(Boost_LIBRARIES)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(headers)
-include_directories(/usr/local/lib)
 
 link_directories(${CMAKE_BINARY_DIR})
 link_directories(lib)
 
-add_library(program_options STATIC IMPORTED)
-add_library(system STATIC IMPORTED)
-add_library(filesystem STATIC IMPORTED)
-add_library(regex STATIC IMPORTED)
-add_library(json STATIC IMPORTED)
+set(EXT_LIB_LIST program_options
+                 system
+                 filesystem
+                 regex
+                 json
+)
 
-set_property(TARGET program_options PROPERTY IMPORTED_LOCATION  /usr/local/lib/libboost_program_options.a)
-set_property(TARGET system PROPERTY IMPORTED_LOCATION           /usr/local/lib/libboost_system.a)
-set_property(TARGET filesystem PROPERTY IMPORTED_LOCATION       /usr/local/lib/libboost_filesystem.a)
-set_property(TARGET regex PROPERTY IMPORTED_LOCATION            /usr/local/lib/libboost_regex.a)
-set_property(TARGET json PROPERTY IMPORTED_LOCATION            /usr/local/lib/libboost_json.a)
+foreach(item IN LISTS EXT_LIB_LIST)
+    add_library(${item} STATIC IMPORTED)
+endforeach()
+
+set_property(TARGET program_options PROPERTY IMPORTED_LOCATION  ${EXT_LIB_PATH}libboost_program_options.a)
+set_property(TARGET system PROPERTY IMPORTED_LOCATION ${EXT_LIB_PATH}libboost_system.a)
+set_property(TARGET filesystem PROPERTY IMPORTED_LOCATION ${EXT_LIB_PATH}libboost_filesystem.a)
+set_property(TARGET regex PROPERTY IMPORTED_LOCATION ${EXT_LIB_PATH}libboost_regex.a)
+set_property(TARGET json PROPERTY IMPORTED_LOCATION ${EXT_LIB_PATH}libboost_json.a)
 
 add_library(search_engine src/CHashReader.cpp src/CDuplicatedFile.cpp src/CSearcher.cpp)
 add_library(gui_interface src/gui_interface/CBoostSocketGUI.cpp)
 
-add_executable(bayan main.cpp
-        headers/data_transformer/IDatatrnsformer.h
-        src/data_transformer/CJSONDataTransformer.cpp)
+add_executable(bayan main.cpp src/data_transformer/CJSONDataTransformer.cpp)
 
-target_link_libraries(bayan PRIVATE search_engine gui_interface program_options system filesystem regex json)
+target_link_libraries(bayan PRIVATE ${EXT_LIB_LIST} search_engine gui_interface)
 
 set_target_properties(bayan search_engine gui_interface PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 target_compile_options(bayan PRIVATE -Wall -Wextra -pedantic)
